@@ -1,0 +1,6 @@
+Experiment results 
+Algorithm;Precision:topN=10|targetSet=allrelevantintestset|;Recall:topN=10|targetSet=allrelevantintestset;NDCG:topN=10;MAE;RMSE;
+FactorizedNeighborhoodRecommender:lambda=0.03|gamma=0.01|iterations=100|nbFactors=50;0.329;0.739;0.802;0.74;0.947;
+FunkSVDRecommender:numFeatures=50|initialSteps=50;0.329;0.745;0.805;0.748;0.961;
+SlopeOneRecommender;0.326;0.742;0.794;0.752;0.968;
+

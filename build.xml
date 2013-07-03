@@ -1,0 +1,107 @@
+<project default="run" name="Recommender101">
+
+	<!-- Set the classpath -->
+	<property name="lib.dir"     value="lib"/>
+	<property name="dist.dir"     value="dist"/>
+	<property name="build.dir"     value="build"/>
+	<property name="jar.file"     value="recommender101.jar"/>
+	<path id="classpath">
+		<fileset dir="${lib.dir}" includes="**/*.jar"/>
+	</path>
+
+	<!-- Cleaning -->
+	<target name="clean">
+		<delete dir="build"/>
+		<delete dir="bin"/>
+		<delete dir="dist"/>
+	</target>
+
+	<!-- Update Source from SVN -->
+	<target name="svnupdate">
+		<exec executable="svn.exe">
+			<arg value="update"/>
+			<arg value="https://ls13-www.cs.uni-dortmund.de/svn/recommender101-core"/>
+		</exec>
+	</target>
+
+	<!-- Create distributable ZIP file -->
+	<target name="createDistro">
+		<echo message="Creating distribution package"/>
+		<delete dir="${dist.dir}"/>
+		<mkdir dir="${dist.dir}"/>
+
+		<antcall target="compile"/>
+		<antcall target="jar"/>
+
+		<copy todir="dist/src">
+			<fileset dir="src">
+				<exclude name="**/*.svn"/>
+			</fileset>
+		</copy>
+		<copy todir="dist/.settings">
+			<fileset dir=".settings"/>
+		</copy>
+		<copy todir="dist/lib">
+			<fileset dir="lib"/>
+		</copy>
+		<copy todir="dist/data">
+			<fileset dir="data">
+				<exclude name="**/*.txt"/>
+			</fileset>
+		</copy>
+		<copy todir="dist/conf">
+			<fileset dir="conf"/>
+		</copy>
+		<copy file=".classpath" todir="dist"/>
+		<copy file=".project" todir="dist"/>
+		<copy file="build.xml" todir="dist"/>
+		<copy file="license.txt" todir="dist"/>
+		<copy file="run.sh" todir="dist"/>
+		
+		<zip destfile="dist/recommender101.zip" basedir="dist"/>
+	</target>
+
+	<!-- Compile source -->
+	<target name="compile">
+		<mkdir dir="bin"/>
+		<javac srcdir="src" destdir="bin" classpathref="classpath" includeAntRuntime="false">
+			<compilerarg value="-Xlint:unchecked" />
+		</javac>
+	</target>
+
+	<!-- Create jar -->
+	<target name="jar">
+		<mkdir dir="build/jar"/>
+		<jar destfile="build/jar/${jar.file}" basedir="bin">
+			<manifest>
+				<attribute name="Main-Class" value="org.recommender101.Recommender101"/>
+			</manifest>
+		</jar>
+	</target>
+
+	<!-- Run jar -->
+	<target name="run-jar">
+		<java classname="org.recommender101.Recommender101" fork="true" >
+			<jvmarg value="-Xmx1024m"/>
+			<arg value="${filename}"/>
+			<classpath>
+				<fileset dir="lib">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="build">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</java>
+	</target>
+
+	<!-- Compile, jar and run with default property file -->
+	<target name="run">
+		<antcall target="compile"/>
+		<antcall target="jar"/>
+		<antcall target="run-jar">
+			<param name="filename" value="conf/recommender101.properties"/>
+		</antcall>
+	</target>
+
+</project>
