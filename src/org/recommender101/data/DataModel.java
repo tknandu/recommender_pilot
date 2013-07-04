@@ -29,7 +29,7 @@ public class DataModel {
 	HashMap<Integer, Set<Rating>> ratingsPerUser = new HashMap<Integer, Set<Rating>>();
 
 	// implicit ratings 
-	protected Set<Rating> implicitRatings = new HashSet<Rating>();
+	protected Set<Rating> implicitRatings = new HashSet<Rating>(); 
 	
 	// HashMap ratings per user
 	protected HashMap<Integer, Set<Rating>> implicitRatingsPerUser = new HashMap<Integer, Set<Rating>>();

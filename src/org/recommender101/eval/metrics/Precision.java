@@ -9,8 +9,8 @@ import org.recommender101.data.Rating;
 /**
  * Implements variants of the precision metric
  * @author dietmar
- *
  */
+
 public class Precision extends PrecisionRecall {
 
 	/**

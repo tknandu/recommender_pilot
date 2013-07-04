@@ -100,6 +100,18 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		
 		train(initialSteps);
 		
+		for(int k=0;k< emSvd.getLeftVector((Integer) dataModel.getUsers().toArray()[1]).length; k++)
+			System.out.println((emSvd.getLeftVector((Integer) dataModel.getUsers().toArray()[1]))[k]);
+		
+		System.out.println("XXXXXXXXXXXXX");
+		int ct=0;
+		for(Integer i : recommendItems((Integer) dataModel.getUsers().toArray()[1]))
+		{
+			if(ct==10) break;
+			ct++;
+			System.out.println(i);
+		}
+		
 		// Load the user averages for the recommendation task
 		this.perUserAverage = dataModel.getUserAverageRatings();		
 		Debug.log("FunkSVD:init: Initial training done");
@@ -114,7 +126,7 @@ public class FunkSVDRecommender extends AbstractRecommender {
 			nextTrainStep();
 		}
 	}
-
+	
   // =====================================================================================
 
 	private void nextTrainStep() {
