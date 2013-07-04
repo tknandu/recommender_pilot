@@ -28,10 +28,10 @@ public class DefaultDataLoader  {
 	// Should we transform the data 
 	// 0 no
 	// > 0: This is the threshold above which items are relevant 
-	public int binarizeLevel = 0;
+	public int binarizeLevel = 3;     // changed
 	
 	// Should we remove 0 -valued ratings?
-	public boolean useUnaryRatings = false;
+	public boolean useUnaryRatings = true;  // changed
 	
 	/**
 	 * An empty constructor
