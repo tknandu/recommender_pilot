@@ -7,11 +7,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
 import org.recommender101.data.Rating;
 import org.recommender101.recommender.AbstractRecommender;
 import org.recommender101.tools.Debug;
 import org.recommender101.tools.Utilities101;
+
+import cern.colt.matrix.DoubleMatrix2D;
+import cern.colt.matrix.impl.SparseDoubleMatrix2D;
+import cern.colt.matrix.linalg.SingularValueDecomposition;
+import cern.colt.matrix.linalg.Algebra;
 
 /**
  * Implements a baseline SVD recommender
@@ -27,6 +31,7 @@ public class FunkSVDRecommender extends AbstractRecommender {
 	// Default parameter settings
 	int numFeatures = 50;
 	int initialSteps = 100;
+	int N = 5;
 	
 	private FastByIDMap<Integer> userMap = null;
 	private FastByIDMap<Integer> itemMap = null;
@@ -97,12 +102,85 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		emSvd = new GradientDescentSVD(numUsers, numItems, numFeatures, defaultValue);
 		cachedPreferences = new ArrayList<Rating>(numUsers);
 		recachePreferences();
-		
+	
 		train(initialSteps);
 		
-		for(int k=0;k< emSvd.getLeftVector((Integer) dataModel.getUsers().toArray()[1]).length; k++)
-			System.out.println((emSvd.getLeftVector((Integer) dataModel.getUsers().toArray()[1]))[k]);
+		/*double itemMatrix[][] = emSvd.getItemMatrix();
 		
+		int temp[] = new int[numItems];
+		
+		int topNReco[][] = new int[numItems][N];
+		for(int i=0; i<numItems; i++)
+		{
+			temp = Similarity.similarVectors(itemMatrix, i , 0);
+			for(int j=0; j<N; j++)
+			{
+				topNReco[i][j] = temp [j];
+			}
+		}
+		
+		for(int i=0; i<numItems; i++)	
+		{
+			System.out.print(i);
+			System.out.print(":");
+			System.out.print(" ");
+			for(int j=0; j<N; j++)
+			{
+				System.out.print(topNReco[i][j]);
+				System.out.print(" ");
+			}
+			System.out.println(" ");
+		}
+		*/
+		
+		SparseDoubleMatrix2D A = new SparseDoubleMatrix2D(numItems, numUsers);
+		A.assign(0);
+		for (Integer user : dataModel.getUsers()) {
+			for (Rating rating : dataModel.getRatingsPerUser().get(user)) {
+				int userid=rating.user;
+				int useridx=userMap.get(userid);
+				int itemid= rating.item;
+				int itemidx=itemMap.get(itemid);
+				A.set(itemidx, useridx, rating.rating);
+			}
+		}
+		
+		Algebra a = new Algebra();
+		
+		SingularValueDecomposition svd = new SingularValueDecomposition(A);
+		DoubleMatrix2D U = svd.getU();
+		DoubleMatrix2D S = svd.getS();
+		DoubleMatrix2D itemReduced = a.mult(U, S);
+		
+		double itemMatrix_SVD[][] = itemReduced.toArray();
+		
+		int temp[] = new int[numItems];
+		
+		int topNReco[][] = new int[numItems][N];
+		for(int i=0; i<numItems; i++)
+		{
+			temp = Similarity.similarVectors(itemMatrix_SVD, i , 0);
+			for(int j=0; j<N; j++)
+			{
+				topNReco[i][j] = temp [j];
+			}
+		}
+		
+		for(int i=0; i<numItems; i++)	
+		{
+			System.out.print(i);
+			System.out.print(":");
+			System.out.print(" ");
+			for(int j=0; j<N; j++)
+			{
+				System.out.print(topNReco[i][j]);
+				System.out.print(" ");
+			}
+			System.out.println(" ");
+		}
+		
+		
+		/*
 		System.out.println("XXXXXXXXXXXXX");
 		int ct=0;
 		for(Integer i : recommendItems((Integer) dataModel.getUsers().toArray()[1]))
@@ -111,6 +189,7 @@ public class FunkSVDRecommender extends AbstractRecommender {
 			ct++;
 			System.out.println(i);
 		}
+		*/
 		
 		// Load the user averages for the recommendation task
 		this.perUserAverage = dataModel.getUserAverageRatings();		

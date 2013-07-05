@@ -108,5 +108,13 @@ public final class GradientDescentSVD {
 	  return this.leftVector[user];
   }
   
+  double[] getRightVector(int item) {
+  	return this.rightVector[item];
+  }
+  
+  double[][] getItemMatrix() {
+  	return this.leftVector;
+  }
+  
 }
 

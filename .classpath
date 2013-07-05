@@ -4,5 +4,7 @@
 	<classpathentry kind="lib" path="lib/extensions/funksvd/uncommons-maths-1.2.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/extensions/wordvectortool/wvtool.jar"/>
+	<classpathentry kind="lib" path="/Users/nandu/Downloads/ejml-0.23.jar"/>
+	<classpathentry kind="lib" path="/Users/nandu/Downloads/colt-1.0.1/colt.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
