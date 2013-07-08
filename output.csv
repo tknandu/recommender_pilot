@@ -1,4 +1,4 @@
 Experiment results 
 Algorithm;Precision:topN=10|targetSet=allrelevantintestset|;Recall:topN=10|targetSet=allrelevantintestset;
-FunkSVDRecommender:numFeatures=50|initialSteps=50;1;0.761;
+FunkSVDRecommender:numFeatures=50|initialSteps=50;1;0.731;
 

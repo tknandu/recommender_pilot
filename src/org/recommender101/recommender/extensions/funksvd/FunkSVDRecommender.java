@@ -78,7 +78,7 @@ public class FunkSVDRecommender extends AbstractRecommender {
   // =====================================================================================
 
 	@Override
-	public void init() {
+	public void init() throws Exception {
 		
 		Debug.log("FunkSVD:init: Starting to train model");
 		int numUsers = dataModel.getUsers().size();
@@ -134,7 +134,7 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		*/
 		
 		SparseDoubleMatrix2D A = new SparseDoubleMatrix2D(numItems, numUsers);
-		A.assign(0);
+		//A.assign(0);
 		for (Integer user : dataModel.getUsers()) {
 			for (Rating rating : dataModel.getRatingsPerUser().get(user)) {
 				int userid=rating.user;
@@ -148,15 +148,43 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		Algebra a = new Algebra();
 		
 		SingularValueDecomposition svd = new SingularValueDecomposition(A);
+		
+		System.out.println("Rank : "+ svd.rank());
+		
+		double[] values = svd.getSingularValues();
+		
+		double sum = 0;
+		
+		for(int j=0;j<values.length;j++) {
+			sum += values[j];
+		}
+		
+		for(int j=0;j<values.length;j++) {
+			System.out.println(j + " : " + (values[j]/sum)*100 + " %");
+		}
+		
+		double cur_sum = 0;
+		
+		int pos=0;
+		for(int j=0;j<values.length;j++) {
+			if(cur_sum > 90) {
+				pos=j;
+				break;
+			}
+			cur_sum+=(values[j]/sum)*100 ;
+		}
+		
+		System.out.println("Pt upto threshold importance : " + pos);
+		
 		DoubleMatrix2D U = svd.getU();
 		DoubleMatrix2D S = svd.getS();
 		DoubleMatrix2D itemReduced = a.mult(U, S);
 		
 		double itemMatrix_SVD[][] = itemReduced.toArray();
 		
-    KMeans kmeans = new KMeans(2, numItems, itemMatrix_SVD[0].length, itemMatrix_SVD);
-    List<Integer> clusters = kmeans.partition();
-    System.out.println(kmeans.printResults());
+    //KMeans kmeans = new KMeans(2, numItems, itemMatrix_SVD[0].length, itemMatrix_SVD);
+    //List<Integer> clusters = kmeans.partition();
+    //System.out.println(kmeans.printResults());
     
 		int temp[] = new int[numItems];
 		
@@ -183,6 +211,8 @@ public class FunkSVDRecommender extends AbstractRecommender {
 			System.out.println(" ");
 		}
 		
+		System.out.println("Clustering begins : ");
+		SimpleKMeansClustering.kmeansClustering(SimpleKMeansClustering.getPoints(itemMatrix_SVD));
 		
 		/*
 		System.out.println("XXXXXXXXXXXXX");
