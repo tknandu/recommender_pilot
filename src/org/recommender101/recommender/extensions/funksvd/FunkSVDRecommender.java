@@ -4,9 +4,11 @@ package org.recommender101.recommender.extensions.funksvd;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import org.recommender101.data.Rating;
 import org.recommender101.recommender.AbstractRecommender;
 import org.recommender101.tools.Debug;
@@ -37,6 +39,8 @@ public class FunkSVDRecommender extends AbstractRecommender {
 	private FastByIDMap<Integer> itemMap = null;
 	private GradientDescentSVD emSvd = null;
 	private List<Rating> cachedPreferences = null;
+	
+	protected static Set<Integer> newItems = new HashSet<Integer>();
 	
 	// Calculate the user averages
 	Map<Integer, Float> perUserAverage = new HashMap<Integer, Float>();
@@ -159,12 +163,14 @@ public class FunkSVDRecommender extends AbstractRecommender {
 			sum += values[j];
 		}
 		
+		double cum_sum=0;
 		for(int j=0;j<values.length;j++) {
-			System.out.println(j + " : " + (values[j]/sum)*100 + " %");
+			cum_sum+=(values[j]/sum)*100;
+			System.out.println(j + " : " + (values[j]/sum)*100 + " % Cumulative : " + cum_sum + " %");
 		}
 		
 		double cur_sum = 0;
-		
+
 		int pos=0;
 		for(int j=0;j<values.length;j++) {
 			if(cur_sum > 90) {
@@ -177,8 +183,11 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		System.out.println("Pt upto threshold importance : " + pos);
 		
 		DoubleMatrix2D U = svd.getU();
+		DoubleMatrix2D U_threshold = U.viewPart(0, 0, numItems, pos);
 		DoubleMatrix2D S = svd.getS();
-		DoubleMatrix2D itemReduced = a.mult(U, S);
+		DoubleMatrix2D S_threshold = S.viewPart(0, 0, pos, pos);
+		DoubleMatrix2D itemReduced = a.mult(U_threshold, S_threshold);
+		//DoubleMatrix2D itemReduced_threshold = itemReduced.viewPart(0, 0, numItems, pos);
 		
 		double itemMatrix_SVD[][] = itemReduced.toArray();
 		
@@ -212,7 +221,11 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		}
 		
 		System.out.println("Clustering begins : ");
-		SimpleKMeansClustering.kmeansClustering(SimpleKMeansClustering.getPoints(itemMatrix_SVD));
+		int k=5;
+		Clusters cluster = new Clusters(k);
+		SimpleKMeansClustering.kmeansClustering(SimpleKMeansClustering.getPoints(itemMatrix_SVD),cluster, k);
+		Clusters.printClusters();
+		
 		
 		/*
 		System.out.println("XXXXXXXXXXXXX");
@@ -228,6 +241,11 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		// Load the user averages for the recommendation task
 		this.perUserAverage = dataModel.getUserAverageRatings();		
 		Debug.log("FunkSVD:init: Initial training done");
+	}
+	
+	public static void setNewItems(Set<Integer> s)
+	{
+		newItems = s;
 	}
 	
   // =====================================================================================

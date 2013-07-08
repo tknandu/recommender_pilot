@@ -2,7 +2,9 @@ package org.recommender101.recommender.extensions.funksvd;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -35,9 +37,8 @@ public class SimpleKMeansClustering {
     return points;
   }
   
-  public static void kmeansClustering(List<Vector> vectors) throws Exception {
+  public static void kmeansClustering(List<Vector> vectors, Clusters clust, int k ) throws Exception {
     
-    int k = 5;
     //List<Vector> vectors = getPoints(points);
     File testData = new File("testdata");
     if (!testData.exists()) {
@@ -77,11 +78,22 @@ public class SimpleKMeansClustering {
     IntWritable key = new IntWritable();
     WeightedVectorWritable value = new WeightedVectorWritable();
     int i=0;
+    Set<Integer> newItems = new HashSet<Integer>();
+    
     while (reader.next(key, value)) {
-      System.out.println(i+"   "+value.toString() + " belongs to cluster "
-                         + key.toString());
+    	
+      String val = value.toString();
+      //System.out.println(i+"   "+val + " belongs to cluster " + key.toString());
+      if(val.substring(val.length()-2).equals("[]")) {
+    	 newItems.add(i);
+      }
+      else {
+      clust.addItem(i, key.toString());
+      }
       i++;
     }
+    
+    FunkSVDRecommender.setNewItems(newItems);
     reader.close();
   }
   
