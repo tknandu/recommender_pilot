@@ -154,6 +154,10 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		
 		double itemMatrix_SVD[][] = itemReduced.toArray();
 		
+    KMeans kmeans = new KMeans(2, numItems, itemMatrix_SVD[0].length, itemMatrix_SVD);
+    List<Integer> clusters = kmeans.partition();
+    System.out.println(kmeans.printResults());
+    
 		int temp[] = new int[numItems];
 		
 		int topNReco[][] = new int[numItems][N];
