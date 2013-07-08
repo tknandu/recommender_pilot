@@ -226,6 +226,11 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		SimpleKMeansClustering.kmeansClustering(SimpleKMeansClustering.getPoints(itemMatrix_SVD),cluster, k);
 		Clusters.printClusters();
 		
+		System.out.println("New Item Set :");
+		for(Integer i : newItems)
+		{
+			System.out.print((int)i+", ");
+		}
 		
 		/*
 		System.out.println("XXXXXXXXXXXXX");

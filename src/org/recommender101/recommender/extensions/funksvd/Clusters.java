@@ -27,10 +27,11 @@ public class Clusters {
 			cluster.add(s);
 		}
 	}
+	
 	public static void printClusters() {
 		for(int i =0;i<cluster.size();i++)
 		{
-			System.out.println(i+" ");
+			System.out.println("Cluster "+ i+":");
 			for(int j : cluster.get(i))
 			{
 				System.out.print(j+", ");
