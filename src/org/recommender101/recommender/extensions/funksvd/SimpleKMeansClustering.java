@@ -69,7 +69,7 @@ public class SimpleKMeansClustering {
     
     KMeansDriver.run(conf, new Path("testdata/points"), new Path("testdata/clusters"),
       output, new EuclideanDistanceMeasure(), 0.001, 1,
-      true, 0.0, false);
+      true, false);
     
     SequenceFile.Reader reader = new SequenceFile.Reader(fs,
         new Path("output/" + Kluster.CLUSTERED_POINTS_DIR

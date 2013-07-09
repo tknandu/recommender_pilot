@@ -9,6 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import org.apache.mahout.clustering.fuzzykmeans.FuzzyKMeansClusterer;
+import org.apache.mahout.clustering.fuzzykmeans.SoftCluster;
+import org.apache.mahout.clustering.kmeans.RandomSeedGenerator;
+import org.apache.mahout.common.distance.DistanceMeasure;
+import org.apache.mahout.common.distance.EuclideanDistanceMeasure;
+import org.apache.mahout.math.Vector;
 import org.recommender101.data.Rating;
 import org.recommender101.recommender.AbstractRecommender;
 import org.recommender101.tools.Debug;
@@ -153,7 +159,7 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		
 		SingularValueDecomposition svd = new SingularValueDecomposition(A);
 		
-		System.out.println("Rank : "+ svd.rank());
+		System.out.println("Rank of dataset: "+ svd.rank());
 		
 		double[] values = svd.getSingularValues();
 		
@@ -163,6 +169,7 @@ public class FunkSVDRecommender extends AbstractRecommender {
 			sum += values[j];
 		}
 		
+		System.out.println("Contribution of factors:");
 		double cum_sum=0;
 		for(int j=0;j<values.length;j++) {
 			cum_sum+=(values[j]/sum)*100;
@@ -170,7 +177,6 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		}
 		
 		double cur_sum = 0;
-
 		int pos=0;
 		for(int j=0;j<values.length;j++) {
 			if(cur_sum > 90) {
@@ -180,23 +186,21 @@ public class FunkSVDRecommender extends AbstractRecommender {
 			cur_sum+=(values[j]/sum)*100 ;
 		}
 		
-		System.out.println("Pt upto threshold importance : " + pos);
+		System.out.println("Factor id upto threshold importance : " + pos);
 		
 		DoubleMatrix2D U = svd.getU();
 		DoubleMatrix2D U_threshold = U.viewPart(0, 0, numItems, pos);
 		DoubleMatrix2D S = svd.getS();
 		DoubleMatrix2D S_threshold = S.viewPart(0, 0, pos, pos);
 		DoubleMatrix2D itemReduced = a.mult(U_threshold, S_threshold);
-		//DoubleMatrix2D itemReduced_threshold = itemReduced.viewPart(0, 0, numItems, pos);
-		
 		double itemMatrix_SVD[][] = itemReduced.toArray();
 		
     //KMeans kmeans = new KMeans(2, numItems, itemMatrix_SVD[0].length, itemMatrix_SVD);
     //List<Integer> clusters = kmeans.partition();
     //System.out.println(kmeans.printResults());
-    
-		int temp[] = new int[numItems];
 		
+		System.out.println("Top N Recommendations based on CosineSimilarity on Reduced Dimension Item Matrix:");
+		int temp[] = new int[numItems];
 		int topNReco[][] = new int[numItems][N];
 		for(int i=0; i<numItems; i++)
 		{
@@ -217,19 +221,38 @@ public class FunkSVDRecommender extends AbstractRecommender {
 				System.out.print(topNReco[i][j]);
 				System.out.print(" ");
 			}
-			System.out.println(" ");
+			System.out.println(" ");	
 		}
 		
+		
 		System.out.println("Clustering begins : ");
-		int k=5;
-		Clusters cluster = new Clusters(k);
-		SimpleKMeansClustering.kmeansClustering(SimpleKMeansClustering.getPoints(itemMatrix_SVD),cluster, k);
+		int k=10;
+		List<Vector> vectors = SimpleKMeansClustering.getPoints(itemMatrix_SVD);
+		/*Clusters cluster = new Clusters(k);
+		SimpleKMeansClustering.kmeansClustering(vectors, cluster, k);
+		System.out.println("Cluster Details:");
 		Clusters.printClusters();
 		
 		System.out.println("New Item Set :");
 		for(Integer i : newItems)
 		{
 			System.out.print((int)i+", ");
+		}*/
+		
+		System.out.println("Fuzzy K-Means Clustering begins : ");
+		List<SoftCluster> clusters = new ArrayList<SoftCluster>();
+		int clusterId = 0;
+		for(int i=0; i<k; i++)
+		{
+			Vector vec = vectors.get(i);
+			clusters.add(new SoftCluster(vec, clusterId++, new EuclideanDistanceMeasure()));
+		}
+		FuzzyKMeansClusterer fkmc = new FuzzyKMeansClusterer();
+		List<List<SoftCluster>> finalClusters = fkmc.clusterPoints(vectors, clusters, new EuclideanDistanceMeasure(),
+				0.01, 3.0, 10); 	
+		for(SoftCluster cluster : finalClusters.get(finalClusters.size() - 1)) {
+			System.out.println("Fuzzy Cluster id: " + cluster.getId()
+				+ " center: " + cluster.getCenter().asFormatString()); 		
 		}
 		
 		/*
