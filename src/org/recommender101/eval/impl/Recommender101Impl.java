@@ -206,7 +206,6 @@ public class Recommender101Impl {
 		dataLoader.loadData(dataModel);
 
 		
-		
 		/**
 		 * Print out the statistics at the beginning
 		 */

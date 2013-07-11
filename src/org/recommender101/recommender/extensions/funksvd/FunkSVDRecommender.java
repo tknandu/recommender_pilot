@@ -10,9 +10,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
-import jminhep.cluster.DataHolder;
-import jminhep.cluster.DataPoint;
-import jminhep.cluster.Partition;
 import org.apache.mahout.clustering.fuzzykmeans.FuzzyKMeansClusterer;
 import org.apache.mahout.clustering.fuzzykmeans.SoftCluster;
 import org.apache.mahout.clustering.kmeans.RandomSeedGenerator;
@@ -40,8 +37,8 @@ public class FunkSVDRecommender extends AbstractRecommender {
 
 	// Default parameter settings
 	int numFeatures = 50;
-	int initialSteps = 100;
-	int N = 5;
+	int initialSteps = 1;
+	int N = 7;
 
 	private FastByIDMap<Integer> userMap = null;
 	private FastByIDMap<Integer> itemMap = null;
@@ -112,10 +109,10 @@ public class FunkSVDRecommender extends AbstractRecommender {
 
 		emSvd = new GradientDescentSVD(numUsers, numItems, numFeatures,
 				defaultValue);
-		cachedPreferences = new ArrayList<Rating>(numUsers);
-		recachePreferences();
+		//cachedPreferences = new ArrayList<Rating>(numUsers);
+		//recachePreferences();
 
-		train(initialSteps);
+		//train(initialSteps);
 
 		// System.out.println("Top N Recommendations using SVD of Reco101 :");
 		// double itemMatrix[][] = emSvd.getItemMatrix();
@@ -158,9 +155,10 @@ public class FunkSVDRecommender extends AbstractRecommender {
 				A.set(itemidx, useridx, rating.rating);
 			}
 		}
-
+		
 		Algebra a = new Algebra();
 
+		System.out.println("Started SVD:");
 		SingularValueDecomposition svd = new SingularValueDecomposition(A);
 
 		System.out.println("Rank of dataset: " + svd.rank());
@@ -193,6 +191,14 @@ public class FunkSVDRecommender extends AbstractRecommender {
 
 		System.out.println("Factor id upto threshold importance : " + pos);
 
+		/*
+		//DoubleMatrix2D V = svd.getV();
+		//DoubleMatrix2D V_threshold = V.viewPart(0, 0, numItems, pos);
+		//DoubleMatrix2D V_threshold_T = a.transpose(V_threshold);
+		//DoubleMatrix2D S = svd.getS();
+		//DoubleMatrix2D S_threshold = S.viewPart(0, 0, pos, pos);
+		//DoubleMatrix2D itemReduced_T = a.mult(S_threshold, V_threshold_T);
+		//DoubleMatrix2D itemReduced = a.transpose(itemReduced_T);
 		DoubleMatrix2D U = svd.getU();
 		DoubleMatrix2D U_threshold = U.viewPart(0, 0, numItems, pos);
 		DoubleMatrix2D S = svd.getS();
@@ -251,6 +257,8 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		
 		// Computing the TopN recommendations for each item from Fuzzy k-Means clusters
 		fuzzykMeans_cluster.topNReco(numItems, N, itemMatrix_SVD);
+		
+		*/
 		
 		//DataHolder dh = new DataHolder();
 		//for(int i=0; i<numItems; i++)

@@ -84,7 +84,7 @@ public class DefaultDataLoader  {
 				line = reader.readLine();
 				continue;
 			}
-			tokens = line.split("\t");
+			tokens = line.split("::");  // \t
 			// First, add the ratings.
 			dm.addRating(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]));
 			line = reader.readLine();
