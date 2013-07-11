@@ -145,14 +145,14 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		 * Stuff starts here \m/
 		 */
 
-		SparseDoubleMatrix2D A = new SparseDoubleMatrix2D(numItems, numUsers);
+		SparseDoubleMatrix2D A = new SparseDoubleMatrix2D(numUsers, numItems);
 		for (Integer user : dataModel.getUsers()) {
 			for (Rating rating : dataModel.getRatingsPerUser().get(user)) {
 				int userid = rating.user;
 				int useridx = userMap.get(userid);
 				int itemid = rating.item;
 				int itemidx = itemMap.get(itemid);
-				A.set(itemidx, useridx, rating.rating);
+				A.set(useridx, itemidx, rating.rating);
 			}
 		}
 		
@@ -191,19 +191,19 @@ public class FunkSVDRecommender extends AbstractRecommender {
 
 		System.out.println("Factor id upto threshold importance : " + pos);
 
-		/*
-		//DoubleMatrix2D V = svd.getV();
-		//DoubleMatrix2D V_threshold = V.viewPart(0, 0, numItems, pos);
-		//DoubleMatrix2D V_threshold_T = a.transpose(V_threshold);
-		//DoubleMatrix2D S = svd.getS();
-		//DoubleMatrix2D S_threshold = S.viewPart(0, 0, pos, pos);
-		//DoubleMatrix2D itemReduced_T = a.mult(S_threshold, V_threshold_T);
-		//DoubleMatrix2D itemReduced = a.transpose(itemReduced_T);
-		DoubleMatrix2D U = svd.getU();
-		DoubleMatrix2D U_threshold = U.viewPart(0, 0, numItems, pos);
+		
+		DoubleMatrix2D V = svd.getV();
+		DoubleMatrix2D V_threshold = V.viewPart(0, 0, numItems, pos);
+		DoubleMatrix2D V_threshold_T = a.transpose(V_threshold);
 		DoubleMatrix2D S = svd.getS();
 		DoubleMatrix2D S_threshold = S.viewPart(0, 0, pos, pos);
-		DoubleMatrix2D itemReduced = a.mult(U_threshold, S_threshold);
+		DoubleMatrix2D itemReduced_T = a.mult(S_threshold, V_threshold_T);
+		DoubleMatrix2D itemReduced = a.transpose(itemReduced_T);
+		//DoubleMatrix2D U = svd.getU();
+		//DoubleMatrix2D U_threshold = U.viewPart(0, 0, numItems, pos);
+		//DoubleMatrix2D S = svd.getS();
+		//DoubleMatrix2D S_threshold = S.viewPart(0, 0, pos, pos);
+		//DoubleMatrix2D itemReduced = a.mult(U_threshold, S_threshold);
 		double itemMatrix_SVD[][] = itemReduced.toArray();
 
 		System.out
@@ -258,7 +258,7 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		// Computing the TopN recommendations for each item from Fuzzy k-Means clusters
 		fuzzykMeans_cluster.topNReco(numItems, N, itemMatrix_SVD);
 		
-		*/
+		
 		
 		//DataHolder dh = new DataHolder();
 		//for(int i=0; i<numItems; i++)
