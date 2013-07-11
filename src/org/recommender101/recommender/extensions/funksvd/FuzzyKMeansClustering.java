@@ -18,16 +18,13 @@ import org.apache.mahout.clustering.kmeans.KMeansDriver;
 import org.apache.mahout.clustering.kmeans.Kluster;
 import org.apache.mahout.common.HadoopUtil;
 import org.apache.mahout.common.distance.EuclideanDistanceMeasure;
+import org.apache.mahout.common.distance.TanimotoDistanceMeasure;
 import org.apache.mahout.math.RandomAccessSparseVector;
 import org.apache.mahout.math.Vector;
 
-public class SimpleKMeansClustering {
- public static final double[][] points = { {1, 1}, {2, 1}, {1, 2},
-                                           {2, 2}, {3, 3}, {8, 8},
-                                           {9, 8}, {8, 9}, {9, 9}};
-  
- 
-  public static List<Vector> getPoints(double[][] raw) {
+public class FuzzyKMeansClustering {
+
+	public static List<Vector> getPoints(double[][] raw) {
     List<Vector> points = new ArrayList<Vector>();
     for (int i = 0; i < raw.length; i++) {
       double[] fr = raw[i];
@@ -38,7 +35,7 @@ public class SimpleKMeansClustering {
     return points;
   }
   
-  public static void kmeansClustering(List<Vector> vectors, Clusters clust, int k ) throws Exception {
+  public static void fuzzyKMeansClustering(List<Vector> vectors, Clusters clust, int k ) throws Exception {
     
     //List<Vector> vectors = getPoints(points);
     File testData = new File("testdata");
@@ -60,7 +57,7 @@ public class SimpleKMeansClustering {
     
     for (int i = 0; i < k; i++) {
       Vector vec = vectors.get(i);
-      Kluster cluster = new Kluster(vec, i, new EuclideanDistanceMeasure());
+      Kluster cluster = new Kluster(vec, i, new TanimotoDistanceMeasure());
       writer.append(new Text(cluster.getIdentifier()), cluster);
     }
     writer.close();
@@ -68,9 +65,9 @@ public class SimpleKMeansClustering {
     Path output = new Path("output");
     HadoopUtil.delete(conf, output);
     
-    KMeansDriver.run(conf, new Path("testdata/points"), new Path("testdata/clusters"),
-      output, new EuclideanDistanceMeasure(), 0.001, 5,
-       true, 0.0, false);
+    FuzzyKMeansDriver.run(conf, new Path("testdata/points"), new Path("testdata/clusters"),
+      output, new TanimotoDistanceMeasure(), 0.01, 20, 2.0f,
+       true, true, 0.0, false);
     
     SequenceFile.Reader reader = new SequenceFile.Reader(fs,
         new Path("output/" + Kluster.CLUSTERED_POINTS_DIR
@@ -79,23 +76,20 @@ public class SimpleKMeansClustering {
     IntWritable key = new IntWritable();
     WeightedVectorWritable value = new WeightedVectorWritable();
     int i=0;
-    Set<Integer> newItems = new HashSet<Integer>();
+    //Set<Integer> newItems = new HashSet<Integer>();
     
     while (reader.next(key, value)) {
     	
-      String val = value.toString();
-      //System.out.println(i+"   "+val + " belongs to cluster " + key.toString());
-      if(val.substring(val.length()-2).equals("[]")) {
-    	 newItems.add(i);
-      }
-      else {
-      clust.addItem(i, key.toString());
+      String val = value.toString(); 
+      //System.out.println(val+" belongs to cluster " +key.toString());
+      if(!val.substring(val.length()-2).equals("[]")) {
+    	 clust.addItem(i, key.toString());
       }
       i++;
     }
     
-    FunkSVDRecommender.setNewItems(newItems);
+    //FunkSVDRecommender.setNewItems(newItems);
     reader.close();
-  }
-  
+  }	
+	
 }

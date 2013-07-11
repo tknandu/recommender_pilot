@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
+import jminhep.cluster.DataHolder;
+import jminhep.cluster.DataPoint;
+import jminhep.cluster.Partition;
 import org.apache.mahout.clustering.fuzzykmeans.FuzzyKMeansClusterer;
 import org.apache.mahout.clustering.fuzzykmeans.SoftCluster;
 import org.apache.mahout.clustering.kmeans.RandomSeedGenerator;
@@ -218,76 +221,73 @@ public class FunkSVDRecommender extends AbstractRecommender {
 			}
 			System.out.println(" ");
 		}
-
+		
 		System.out.println("Clustering begins : ");
-		int k = 7;  // no of clusters
+		
+		//Simple k-Means Clustering
+		int k_kMeans = 7;  // no of clusters
 		List<Vector> vectors = SimpleKMeansClustering.getPoints(itemMatrix_SVD);
-		Clusters cluster = new Clusters(k, numItems);
-		SimpleKMeansClustering.kmeansClustering(vectors, cluster, k);
-		System.out.println("Cluster Details:");
-		Clusters.printClusters();
-
-		// Computing the TopN recommendations for each item from Clusters
-		ArrayList<ArrayList<Integer>> topNReco2 = new ArrayList<ArrayList<Integer>>(
-				numItems);
-		for (int h = 0; h < numItems; h++) {
-			ArrayList<Integer> s = new ArrayList<Integer>(Collections.nCopies(N, -1));
-			topNReco2.add(s);
-		}
-
-		for (int i = 0; i < numItems; i++) {
-			double temp2;
-			ArrayList<Integer> tempReco = new ArrayList<Integer>(Collections.nCopies(
-					N, -1));
-			int ClusterID = Clusters.ItemClusterMap.get(i);
-			if (ClusterID != -1) {
-				Set<Integer> ItemsInCluster = new HashSet<Integer>(
-						Clusters.cluster.get(ClusterID));
-				HashMap<Integer, Double> SimilarityAll = new HashMap<Integer, Double>();
-
-				for (Integer j : ItemsInCluster) {
-					if (i != j) {
-						temp2 = Similarity.calculateSimilarity(itemMatrix_SVD[i],
-								itemMatrix_SVD[j], 0);
-						SimilarityAll.put(j, temp2);
-					}
-				}
-				ValueComparator bvc = new ValueComparator(SimilarityAll);
-				Map<Integer, Double> sorted_Similarity = new TreeMap<Integer, Double>(
-						bvc);
-				sorted_Similarity.putAll(SimilarityAll);
-				int i1 = 0;
-				for (Integer key : sorted_Similarity.keySet()) {
-
-					if (i1 < N) {
-						tempReco.add(i1, key);
-					}
-					else
-						break;
-					i1++;
-				}
-				topNReco2.add(i, tempReco);
-			}
-		}
-		System.out.println("Recommendation Using Clustering: ");
-		for (int i = 0; i < numItems; i++) {
-			System.out.print(i);
-			System.out.print(":");
-			System.out.print(" ");
-			for (int j = 0; j < N; j++) {
-				System.out.print(topNReco2.get(i).get(j));
-				System.out.print(" ");
-			}
-			System.out.println(" ");
-		}
-
+		Clusters kMeans_cluster = new Clusters(k_kMeans, numItems);
+		SimpleKMeansClustering.kmeansClustering(vectors, kMeans_cluster, k_kMeans);
+		
 		System.out.println("New Item Set :");
 		for (Integer i : newItems) {
 			System.out.print((int) i + ", ");
 		}
 		
+		System.out.println("KMeans Cluster Details:");
+		kMeans_cluster.printClusters();
+		
+		// Computing the TopN recommendations for each item from k-Means clusters
+		kMeans_cluster.topNReco(numItems, N, itemMatrix_SVD);
+		
+		// Fuzzy k-Means Clustering
+		int k_fuzzy = 7;
+		Clusters fuzzykMeans_cluster = new Clusters(k_fuzzy, numItems);
+		FuzzyKMeansClustering.fuzzyKMeansClustering(vectors, fuzzykMeans_cluster, k_fuzzy);
+		
+		//System.out.println("Fuzzy KMeans Cluster Details:");
+		fuzzykMeans_cluster.printClusters();
+		
+		// Computing the TopN recommendations for each item from Fuzzy k-Means clusters
+		fuzzykMeans_cluster.topNReco(numItems, N, itemMatrix_SVD);
+		
+		//DataHolder dh = new DataHolder();
+		//for(int i=0; i<numItems; i++)
+		//{
+		//	DataPoint p = new DataPoint(itemMatrix_SVD[i]);
+		//	dh.add(p);
+		//}
+		//Partition partition = new Partition(dh);
+		//
+		//partition.set(k, 0.001, 0.17, 10);  // no of clusters, precision, fuzziness, no of iterations
+		//
+		//partition.setProbab(0.68);		// threshold for probability - belongingness to a cluster
+		//
+		//partition.run(132);
+		//System.out.println("\nalgorithm: " + partition.getName());
+		//System.out.println("Compactness: " + partition.getCompactness());
+		//System.out.println("No of final clusters: " + partition.getNclusters());
+		//DataHolder Centers = partition.getCenters();
+		//System.out.println("Positions of centers: ");
+		//Centers.print();
+		//	
+		//int[] no_points = partition.getPoints();
+		//for(int i=0; i<no_points.length; i++)
+		//{
+		//	System.out.print(no_points[i]);
+		//	System.out.print(" ");
+		//}
+		//System.out.println();
+		// show cluster association
+		//for (int m = 0; m < dh.getSize(); m++) {
+		//		DataPoint dp = dh.getRaw(m);
+		//		int cluster_id = dp.getClusterNumber();
+		//		System.out.println("Item no ="+m+" is associated with="+cluster_id);
+		//	  }		    	
+		
 		/*
-		 * Fuzzy Clustering In-Memory requires mahout-core 0.6 or less which conflicts with the
+		 * Fuzzy Clustering Mahout In-Memory requires mahout-core 0.6 or less which conflicts with the
 		 * need of KMeansDriver, hence I've left it out right now.
 		 * Kindly look into this later.
 		 */
@@ -309,7 +309,6 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		// System.out.println("Fuzzy Cluster id: " + cluster1.getId()
 		// + " center: " + cluster1.getCenter().asFormatString());
 		// }
-		
 		
 		System.out.println("End");
 
