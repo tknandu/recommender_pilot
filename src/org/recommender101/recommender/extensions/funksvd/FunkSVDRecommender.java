@@ -177,7 +177,7 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		double cum_sum = 0;
 		for (int j = 0; j < values.length; j++) {
 			cum_sum += (values[j] / sum) * 100;
-			System.out.println(j + " : " + (values[j] / sum) * 100
+			System.out.println(j + " : Value : " + values[j] + " Percentage : " + (values[j] / sum) * 100
 					+ " % Cumulative : " + cum_sum + " %");
 		}
 
