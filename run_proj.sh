@@ -7,3 +7,4 @@ do
 done
 
 java -cp $libs org.recommender101.Recommender101
+#java -Xms4g -cp $libs org.recommender101.Recommender101

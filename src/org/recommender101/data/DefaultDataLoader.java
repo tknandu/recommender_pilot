@@ -28,7 +28,7 @@ public class DefaultDataLoader  {
 	// Should we transform the data 
 	// 0 no
 	// > 0: This is the threshold above which items are relevant 
-	public int binarizeLevel = 3;     // changed
+	public int binarizeLevel = 5;     // changed
 	
 	// Should we remove 0 -valued ratings?
 	public boolean useUnaryRatings = true;  // changed
@@ -86,7 +86,7 @@ public class DefaultDataLoader  {
 			}
 			tokens = line.split("::");  // \t
 			// First, add the ratings.
-			dm.addRating(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]), Integer.parseInt(tokens[2]));
+			dm.addRating((int)Float.parseFloat(tokens[0]), (int)Float.parseFloat(tokens[1]), (int)Float.parseFloat(tokens[2]));
 			line = reader.readLine();
 //			System.out.println("line.." + line + " (" + counter + ")");
 			counter++;

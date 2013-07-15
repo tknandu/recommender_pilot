@@ -58,7 +58,7 @@
 	<classpathentry kind="lib" path="/Users/nandu/Downloads/recommender101/lib/external_jars/lucene-highlighter-3.6.0.jar"/>
 	<classpathentry kind="lib" path="/Users/nandu/Downloads/recommender101/lib/external_jars/lucene-memory-3.6.0.jar"/>
 	<classpathentry kind="lib" path="/Users/nandu/Downloads/recommender101/lib/external_jars/lucene-queries-3.6.0.jar"/>
-	<classpathentry kind="lib" path="/Users/nandu/Downloads/recommender101/lib/external_jars/mahout-core-0.7-job.jar"/>
+	<classpathentry kind="lib" path="/Users/nandu/Downloads/recommender101/lib/external_jars/mahout-core-0.7-job.jar" sourcepath="/Users/nandu/.m2/repository/org/apache/mahout/mahout-core/0.7/mahout-core-0.7-sources.jar"/>
 	<classpathentry kind="lib" path="/Users/nandu/Downloads/recommender101/lib/external_jars/mahout-core-0.7.jar"/>
 	<classpathentry kind="lib" path="/Users/nandu/Downloads/recommender101/lib/external_jars/mahout-math-0.7.jar"/>
 	<classpathentry kind="lib" path="/Users/nandu/Downloads/recommender101/lib/external_jars/mongo-java-driver-2.5.jar"/>

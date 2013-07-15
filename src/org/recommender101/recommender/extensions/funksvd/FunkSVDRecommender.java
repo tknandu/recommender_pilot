@@ -3,6 +3,7 @@ package org.recommender101.recommender.extensions.funksvd;
 
 import java.util.ArrayList;
 import java.util.Collections;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -145,22 +146,23 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		 * Stuff starts here \m/
 		 */
 
-		SparseDoubleMatrix2D A = new SparseDoubleMatrix2D(numUsers, numItems);
+		SparseDoubleMatrix2D A = new SparseDoubleMatrix2D(numItems, numUsers);
 		for (Integer user : dataModel.getUsers()) {
 			for (Rating rating : dataModel.getRatingsPerUser().get(user)) {
 				int userid = rating.user;
 				int useridx = userMap.get(userid);
 				int itemid = rating.item;
 				int itemidx = itemMap.get(itemid);
-				A.set(useridx, itemidx, rating.rating);
+				A.set(itemidx, useridx, rating.rating);
 			}
 		}
 		
 		Algebra a = new Algebra();
 
+		long t1 = System.currentTimeMillis();
 		System.out.println("Started SVD:");
 		SingularValueDecomposition svd = new SingularValueDecomposition(A);
-
+			
 		System.out.println("Rank of dataset: " + svd.rank());
 
 		double[] values = svd.getSingularValues();
@@ -191,21 +193,20 @@ public class FunkSVDRecommender extends AbstractRecommender {
 
 		System.out.println("Factor id upto threshold importance : " + pos);
 
-		
-		DoubleMatrix2D V = svd.getV();
-		DoubleMatrix2D V_threshold = V.viewPart(0, 0, numItems, pos);
-		DoubleMatrix2D V_threshold_T = a.transpose(V_threshold);
-		DoubleMatrix2D S = svd.getS();
-		DoubleMatrix2D S_threshold = S.viewPart(0, 0, pos, pos);
-		DoubleMatrix2D itemReduced_T = a.mult(S_threshold, V_threshold_T);
-		DoubleMatrix2D itemReduced = a.transpose(itemReduced_T);
-		//DoubleMatrix2D U = svd.getU();
-		//DoubleMatrix2D U_threshold = U.viewPart(0, 0, numItems, pos);
+		//DoubleMatrix2D V = svd.getV();
+		//DoubleMatrix2D V_threshold = V.viewPart(0, 0, numItems, pos);
+		//DoubleMatrix2D V_threshold_T = a.transpose(V_threshold);
 		//DoubleMatrix2D S = svd.getS();
 		//DoubleMatrix2D S_threshold = S.viewPart(0, 0, pos, pos);
-		//DoubleMatrix2D itemReduced = a.mult(U_threshold, S_threshold);
+		//DoubleMatrix2D itemReduced_T = a.mult(S_threshold, V_threshold_T);
+		//DoubleMatrix2D itemReduced = a.transpose(itemReduced_T);
+		DoubleMatrix2D U = svd.getU();
+		DoubleMatrix2D U_threshold = U.viewPart(0, 0, numItems, pos);
+		DoubleMatrix2D S = svd.getS();
+		DoubleMatrix2D S_threshold = S.viewPart(0, 0, pos, pos);
+		DoubleMatrix2D itemReduced = a.mult(U_threshold, S_threshold);
 		double itemMatrix_SVD[][] = itemReduced.toArray();
-
+		
 		System.out
 				.println("Top N Recommendations based on CosineSimilarity on Reduced Dimension Item Matrix:");
 		int temp[] = new int[numItems];
@@ -227,6 +228,10 @@ public class FunkSVDRecommender extends AbstractRecommender {
 			}
 			System.out.println(" ");
 		}
+		long t2 = System.currentTimeMillis();
+		
+		System.out.println("Time taken for brute force : " + (t2-t1)/1000 + " sec");
+		
 		
 		System.out.println("Clustering begins : ");
 		
@@ -257,7 +262,6 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		
 		// Computing the TopN recommendations for each item from Fuzzy k-Means clusters
 		fuzzykMeans_cluster.topNReco(numItems, N, itemMatrix_SVD);
-		
 		
 		
 		//DataHolder dh = new DataHolder();
