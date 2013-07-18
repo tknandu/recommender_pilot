@@ -21,7 +21,9 @@ import org.recommender101.data.Rating;
 import org.recommender101.recommender.AbstractRecommender;
 import org.recommender101.tools.Debug;
 import org.recommender101.tools.Utilities101;
+import Jama.Matrix;
 import cern.colt.matrix.DoubleMatrix2D;
+import cern.colt.matrix.impl.RCDoubleMatrix2D;
 import cern.colt.matrix.impl.SparseDoubleMatrix2D;
 import cern.colt.matrix.linalg.SingularValueDecomposition;
 import cern.colt.matrix.linalg.Algebra;
@@ -153,7 +155,7 @@ public class FunkSVDRecommender extends AbstractRecommender {
 				int useridx = userMap.get(userid);
 				int itemid = rating.item;
 				int itemidx = itemMap.get(itemid);
-				A.set(itemidx, useridx, rating.rating);
+				A.setQuick(itemidx, useridx, rating.rating);
 			}
 		}
 		
@@ -161,10 +163,18 @@ public class FunkSVDRecommender extends AbstractRecommender {
 
 		long t1 = System.currentTimeMillis();
 		System.out.println("Started SVD:");
-		SingularValueDecomposition svd = new SingularValueDecomposition(A);
-			
+		SingularValueDecomposition svd = new SingularValueDecomposition(A);		
+		long t2 = System.currentTimeMillis();
+		System.out.println("Time taken for Cern-Colt SVD : " + (float)(t2-t1)/1000 + "secs");
+		
+		Matrix jama_A = new Matrix(A.toArray());
+		Jama.SingularValueDecomposition jama_svd = new Jama.SingularValueDecomposition(jama_A);
+		long t3 = System.currentTimeMillis();
+		System.out.println("Time taken for JAMA SVD : " + (float)(t3-t2)/1000 + "secs");	
+		
+		/*
 		System.out.println("Rank of dataset: " + svd.rank());
-
+		
 		double[] values = svd.getSingularValues();
 
 		double sum = 0;
@@ -262,7 +272,7 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		
 		// Computing the TopN recommendations for each item from Fuzzy k-Means clusters
 		fuzzykMeans_cluster.topNReco(numItems, N, itemMatrix_SVD);
-		
+		/*
 		
 		//DataHolder dh = new DataHolder();
 		//for(int i=0; i<numItems; i++)

@@ -1,0 +1,9 @@
+.class
+.DS_STORE
+.classpath
+.settings
+data
+conf
+.project
+.RData
+.R.Rout
