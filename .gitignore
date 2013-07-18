@@ -3,7 +3,12 @@
 .classpath
 .settings
 data
-conf
 .project
 .RData
 .R.Rout
+bin
+output
+testdata
+output.csv
+svd_irlba.r.Rout
+Rplots.pdf

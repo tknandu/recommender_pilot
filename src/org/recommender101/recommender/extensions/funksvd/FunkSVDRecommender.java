@@ -1,9 +1,10 @@
 /** DJ **/
 package org.recommender101.recommender.extensions.funksvd;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collections;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
+
 import org.apache.mahout.clustering.fuzzykmeans.FuzzyKMeansClusterer;
 import org.apache.mahout.clustering.fuzzykmeans.SoftCluster;
 import org.apache.mahout.clustering.kmeans.RandomSeedGenerator;
@@ -172,7 +174,6 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		long t3 = System.currentTimeMillis();
 		System.out.println("Time taken for JAMA SVD : " + (float)(t3-t2)/1000 + "secs");	
 		
-		/*
 		System.out.println("Rank of dataset: " + svd.rank());
 		
 		double[] values = svd.getSingularValues();
@@ -238,10 +239,27 @@ public class FunkSVDRecommender extends AbstractRecommender {
 			}
 			System.out.println(" ");
 		}
-		long t2 = System.currentTimeMillis();
+		long t4 = System.currentTimeMillis();
 		
-		System.out.println("Time taken for brute force : " + (t2-t1)/1000 + " sec");
-		
+		System.out.println("Time taken for brute force : " + (t4-t3)/1000 + " sec");
+		HashMap<Integer, NewMovieContent> MovieDetails = new HashMap<Integer, NewMovieContent>(numItems);
+	    BufferedReader reader2 = new BufferedReader(new FileReader("data/movielens/ml-100k/ItemContent.txt"));
+		String line2;
+		line2 = reader2.readLine();
+		String[] token2;
+		int i1=0;
+		while (line2 != null) {
+			//System.out.println(line2);
+			//line2.replace(":", "$");
+			token2 = line2.split("\\|");
+			//System.out.println(token2.length);
+			//System.out.println("ping from loader token contains" + token2[0] + token2[1]);
+			//dm.addDetail((Integer.parseInt(token2[0])), token2[1], Integer.parseInt(token2[4]), Integer.parseInt(token2[5]), Integer.parseInt(token2[6]), Integer.parseInt(token2[7]), Integer.parseInt(token2[8]), Integer.parseInt(token2[9]), Integer.parseInt(token2[10]), Integer.parseInt(token2[11]), Integer.parseInt(token2[12]), Integer.parseInt(token2[13]), Integer.parseInt(token2[14]), Integer.parseInt(token2[15]), Integer.parseInt(token2[16]), Integer.parseInt(token2[17]), Integer.parseInt(token2[18]), Integer.parseInt(token2[19]), Integer.parseInt(token2[20]), Integer.parseInt(token2[21]), Integer.parseInt(token2[22]));
+			System.out.println("Contents" + (token2[7])+ (token2[8]));
+			MovieDetails.put(i1, new NewMovieContent((Integer.parseInt(token2[0])), token2[1], Integer.parseInt(token2[5]), Integer.parseInt(token2[6]), Integer.parseInt(token2[7]), Integer.parseInt(token2[8]), Integer.parseInt(token2[9]), Integer.parseInt(token2[10]), Integer.parseInt(token2[11]), Integer.parseInt(token2[12]), Integer.parseInt(token2[13]), Integer.parseInt(token2[14]), Integer.parseInt(token2[15]), Integer.parseInt(token2[16]), Integer.parseInt(token2[17]), Integer.parseInt(token2[18]), Integer.parseInt(token2[19]), Integer.parseInt(token2[20]), Integer.parseInt(token2[21]), Integer.parseInt(token2[22]),  Integer.parseInt(token2[23])));
+			line2 = reader2.readLine();
+			i1++;
+		}
 		
 		System.out.println("Clustering begins : ");
 		
@@ -260,7 +278,8 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		kMeans_cluster.printClusters();
 		
 		// Computing the TopN recommendations for each item from k-Means clusters
-		kMeans_cluster.topNReco(numItems, N, itemMatrix_SVD);
+		ArrayList<ArrayList<Integer>> topNReco2 = new ArrayList<ArrayList<Integer>>(kMeans_cluster.topNReco(numItems, N, itemMatrix_SVD, k_kMeans));
+		//kMeans_cluster.topNReco(numItems, N, itemMatrix_SVD,k_kMeans);
 		
 		// Fuzzy k-Means Clustering
 		int k_fuzzy = 7;
@@ -271,8 +290,47 @@ public class FunkSVDRecommender extends AbstractRecommender {
 		fuzzykMeans_cluster.printClusters();
 		
 		// Computing the TopN recommendations for each item from Fuzzy k-Means clusters
-		fuzzykMeans_cluster.topNReco(numItems, N, itemMatrix_SVD);
-		/*
+		ArrayList<ArrayList<Integer>> topNReco3 = new ArrayList<ArrayList<Integer>>(fuzzykMeans_cluster.topNReco(numItems, N, itemMatrix_SVD , k_fuzzy));
+		
+		//Final User Recommendation
+		int UserReco[][] = new int [numUsers][7];
+		System.out.println("Final User Recommendation");
+		for(int i=0 ;i< numUsers ;i++) {
+			System.out.print(i);
+			System.out.print(" :");
+			HashMap<Integer, Double> ScoreItem = new HashMap<Integer, Double>(); 
+			for(int j=0 ;j<numItems ;j++) {
+				if (A.get(j, i) ==1){
+					ArrayList<Integer> ListofItems = new ArrayList<Integer>(topNReco2.get(j));
+					for(int p : ListofItems) {
+						if(p!= -1) {
+							if(ScoreItem.get(p) != null) {
+								ScoreItem.put(p,ScoreItem.get(p)+1.0);	
+							}
+							else {
+								ScoreItem.put(p, 1.0);
+							}
+						}
+					}
+				}
+			}
+					
+			ValueComparator bvc = new ValueComparator(ScoreItem);
+	  		Map<Integer, Double> sorted_Score = new TreeMap<Integer, Double>(
+	  						bvc);
+	  		sorted_Score.putAll(ScoreItem);
+	  		int count =0 ;
+	  		for(Integer key : ScoreItem.keySet()) {
+	  			if(count < 7) {
+	  				UserReco[i][count] = key;
+	  				System.out.print(key);
+	  				System.out.print(" ");
+	  			}
+	  			count++;
+	  		}
+	 		System.out.println("");
+		
+	}
 		
 		//DataHolder dh = new DataHolder();
 		//for(int i=0; i<numItems; i++)
